@@ -16,7 +16,7 @@ import {
 } from "@solana/web3.js";
 import { Program, Idl, AnchorProvider, setProvider } from "@coral-xyz/anchor";
 import { Vault } from "../../../../idl/vault";
-import idl from "../../../../idl/vault.json"
+import idl from "../../../../idl/vault.json";
 import * as anchor from "@coral-xyz/anchor";
 
 // create the standard headers for this route (including CORS)
@@ -25,8 +25,10 @@ const headers = createActionHeaders({
 });
 const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-const program = new Program<Vault>(idl as Vault, new AnchorProvider(connection, {} as any, {}));
-
+const program = new Program<Vault>(
+  idl as Vault,
+  new AnchorProvider(connection, {} as any, {})
+);
 
 export const GET = async (req: Request) => {
   try {
@@ -77,6 +79,7 @@ export const OPTIONS = async () => Response.json(null, { headers });
 
 export const POST = async (req: Request) => {
   try {
+    const requestUrl = new URL(req.url);
     const body: ActionPostRequest = await req.json();
 
     // validate the client provided input
@@ -100,27 +103,61 @@ export const POST = async (req: Request) => {
     const vault = vaultPda;
 
     const { blockhash, lastValidBlockHeight } =
-    await connection.getLatestBlockhash();
+      await connection.getLatestBlockhash();
 
     const transaction = new Transaction({
       feePayer: account,
       blockhash,
-      lastValidBlockHeight
+      lastValidBlockHeight,
     }).add(
-       program.instruction.initialize({
+      program.instruction.initialize({
         accounts: {
           user: account,
           state: vaultState,
           vault: vault,
           systemProgram: SystemProgram.programId,
-        }
+        },
       })
     );
-    
+
     const payload: ActionPostResponse = await createPostResponse({
       fields: {
         transaction,
         message: "Vault Initialized",
+        links: {
+          next: {
+            type: "inline",
+            action: {
+              type: "action",
+              title: "Svault - Deposit SOL",
+              icon: new URL("/logo.png", requestUrl.origin).toString(),
+              description: `A Vault to store Native SOLs: 
+      1. Create a Vault 
+      2. Deposit into the Vault (here)
+      3. Withdraw from the Vault
+      4. Close the Vault 
+                `,  
+              label: "Svault - Deposit SOL",
+
+              links: {
+                actions: [
+                  {
+                    label: "Deposit SOL",
+                    href: `/api/actions/deposit?amount={amount}`,
+                    parameters: [
+                      {
+                        name: "amount",
+                        type: "number",
+                        required: true,
+                        label: "Amount to Deposit",
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        },
       },
     });
     return Response.json(payload, {
