@@ -27,7 +27,7 @@ export const GET = async (req: Request) => {
     // Create the payload with buttons for each action
     const payload: ActionGetResponse = {
       type: "action",
-      title: "Vault - The Vault",
+      title: "Svault - The SOL Vault",
       icon: new URL("/logo.png", requestUrl.origin).toString(),
       description: `A Vault to store Native SOLs: 
       1. Create a Vault
