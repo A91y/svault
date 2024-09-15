@@ -1,23 +1,12 @@
 import {
-  ActionPostResponse,
-  createPostResponse,
   ActionGetResponse,
-  ActionPostRequest,
   createActionHeaders,
   ActionError,
 } from "@solana/actions";
-import {
-  clusterApiUrl,
-  Connection,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-} from "@solana/web3.js";
+import { clusterApiUrl, Connection } from "@solana/web3.js";
 import { Program, Idl, AnchorProvider, setProvider } from "@coral-xyz/anchor";
 import { Vault } from "../../../../idl/vault";
 import idl from "../../../../idl/vault.json";
-import * as anchor from "@coral-xyz/anchor";
 
 // create the standard headers for this route (including CORS)
 const headers = createActionHeaders({
@@ -33,10 +22,7 @@ const program = new Program<Vault>(
 export const GET = async (req: Request) => {
   try {
     const requestUrl = new URL(req.url);
-    const baseHref = new URL(
-      `/api/actions`,
-      requestUrl.origin
-    ).toString();
+    const baseHref = new URL(`/api/actions`, requestUrl.origin).toString();
 
     // Create the payload with buttons for each action
     const payload: ActionGetResponse = {
@@ -103,56 +89,3 @@ export const GET = async (req: Request) => {
 // DO NOT FORGET TO INCLUDE THE `OPTIONS` HTTP METHOD
 // THIS WILL ENSURE CORS WORKS FOR BLINKS
 export const OPTIONS = async () => Response.json(null, { headers });
-
-export const POST = async (req: Request) => {
-  try {
-    const body: ActionPostRequest = await req.json();
-
-    // validate the client provided input
-    let account: PublicKey;
-    try {
-      account = new PublicKey(body.account);
-    } catch (err) {
-      throw 'Invalid "account" provided';
-    }
-    const [statePda, stateBump] = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("state"), account.toBuffer()],
-      program.programId
-    );
-    const vaultState = statePda;
-
-    const [vaultPda, vaultBumpSeed] =
-      anchor.web3.PublicKey.findProgramAddressSync(
-        [Buffer.from("vault"), vaultState.toBuffer()],
-        program.programId
-      );
-    const vault = vaultPda;
-
-    const { blockhash, lastValidBlockHeight } =
-      await connection.getLatestBlockhash();
-
-    const transaction = new Transaction({
-      feePayer: account,
-      blockhash,
-      lastValidBlockHeight,
-    }).add();
-
-    const payload: ActionPostResponse = await createPostResponse({
-      fields: {
-        transaction,
-        message: "Vault Initialized",
-      },
-    });
-    return Response.json(payload, {
-      headers,
-    });
-  } catch (err) {
-    console.log(err);
-    let actionError: ActionError = { message: "An unknown error occurred" };
-    if (typeof err == "string") actionError.message = err;
-    return Response.json(actionError, {
-      status: 400,
-      headers,
-    });
-  }
-};

@@ -6,7 +6,7 @@ export default function Home() {
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
         <h1 className="text-6xl font-bold">Svault</h1>
         <p className="text-center sm:text-left">
-          A blink to store SOLs in a vault.
+          A blink to manage your SOLs in a vault.
         </p>
         <div className="flex gap-4 items-center flex-col sm:flex-row">
           <a
