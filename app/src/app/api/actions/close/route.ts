@@ -40,7 +40,7 @@ export const GET = async (req: Request) => {
 
     const payload: ActionGetResponse = {
       type: "action",
-      title: "Vault - Close Vault",
+      title: "Svault - Close Vault",
       icon: new URL("/logo.png", requestUrl.origin).toString(),
       description: `A Vault to store Native SOLs: 
       1. Create a Vault 
@@ -48,7 +48,7 @@ export const GET = async (req: Request) => {
       3. Withdraw from the Vault
       4. Close the Vault (here)
       `,
-      label: "Vault - Close Vault",
+      label: "Svault - Close Vault",
       links: {
         actions: [
           {
